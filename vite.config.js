@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/Palimpsest/',
+  base: '/palimpsest/',
   build: {
     target: 'esnext'
   }
