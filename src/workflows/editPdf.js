@@ -1,0 +1,390 @@
+import Sortable from 'sortablejs';
+import { PDFDocument, degrees } from 'pdf-lib';
+import { pdfjsLib } from '../utils/pdfWorker.js';
+import * as fflate from 'fflate';
+import { showNotification } from '../utils/notifications.js';
+
+export function initEditPdf() {
+  const dropzone = document.getElementById('edit-dropzone');
+  const fileInput = document.getElementById('edit-file-input');
+  const workspace = document.getElementById('edit-workspace');
+  const thumbnailsGrid = document.getElementById('edit-thumbnails');
+  
+  // Toolbar buttons
+  const btnRotate = document.getElementById('edit-rotate-btn');
+  const btnSplit = document.getElementById('edit-split-btn');
+  const btnExportImg = document.getElementById('edit-export-img-btn');
+  const btnDownload = document.getElementById('edit-download-btn');
+  const btnClear = document.getElementById('edit-clear-btn');
+  
+  // Split Panel
+  const splitPanel = document.getElementById('split-results-panel');
+  const splitList = document.getElementById('split-chunks-list');
+  const splitClosePanelBtn = document.getElementById('split-close-panel-btn');
+
+  let currentFile = null;
+  let pdfDoc = null;
+  let pages = []; // { id, originalIndex, pdfjsPage, rotation }
+  let lastSelectedIndex = -1;
+  let sortableInstance = null;
+
+  const loadPdf = async (file) => {
+    try {
+      dropzone.classList.add('hidden');
+      workspace.classList.remove('hidden');
+      thumbnailsGrid.innerHTML = '<div class="spinner" style="margin: 2rem auto; width: 40px; height: 40px;"></div>';
+      
+      currentFile = file;
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfLibData = new Uint8Array(arrayBuffer.slice(0));
+      const pdfJsData = new Uint8Array(arrayBuffer.slice(0));
+      
+      // Load with pdf-lib for mutations
+      pdfDoc = await PDFDocument.load(pdfLibData);
+      const pageCount = pdfDoc.getPageCount();
+
+      // Load with pdf.js for rendering
+      const loadingTask = pdfjsLib.getDocument({ data: pdfJsData });
+      const pdfJsDoc = await loadingTask.promise;
+
+      pages = [];
+      thumbnailsGrid.innerHTML = '';
+      
+      for (let i = 1; i <= pageCount; i++) {
+        const pdfjsPage = await pdfJsDoc.getPage(i);
+        const id = `page-${i}-${Date.now()}`;
+        pages.push({
+          id,
+          originalIndex: i - 1,
+          pdfjsPage,
+          rotation: 0,
+          selected: false,
+          splitActive: false
+        });
+      }
+
+      await renderThumbnails();
+      initSortable();
+      updateUI();
+    } catch (err) {
+      console.error('Error loading PDF:', err);
+      dropzone.classList.remove('hidden');
+      workspace.classList.add('hidden');
+      if (err.message && err.message.includes('encrypted')) {
+        showNotification('This PDF is encrypted. Please unlock it (e.g., "Save to PDF" in your browser) before editing.', 'error');
+      } else {
+        showNotification(`Error: ${err.message || err}`, 'error');
+      }
+    }
+  };
+
+  const renderThumbnails = async () => {
+    thumbnailsGrid.innerHTML = '';
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      const el = document.createElement('div');
+      el.className = `thumbnail-card ${page.selected ? 'selected' : ''}`;
+      el.dataset.id = page.id;
+      el.innerHTML = `
+        <div class="thumbnail-canvas-container">
+          <canvas id="canvas-${page.id}"></canvas>
+        </div>
+        <div class="thumbnail-label">Page ${i + 1}</div>
+      `;
+      
+      const splitHandle = document.createElement('div');
+      splitHandle.className = `split-handle ${page.splitActive ? 'active' : ''}`;
+      splitHandle.title = "Split after this page";
+      splitHandle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        page.splitActive = !page.splitActive;
+        splitHandle.classList.toggle('active');
+        updateUI();
+      });
+      el.appendChild(splitHandle);
+      
+      el.addEventListener('click', (e) => {
+        if (e.shiftKey && lastSelectedIndex !== -1) {
+          const start = Math.min(lastSelectedIndex, i);
+          const end = Math.max(lastSelectedIndex, i);
+          for (let j = start; j <= end; j++) pages[j].selected = true;
+        } else {
+          page.selected = !page.selected;
+          lastSelectedIndex = i;
+        }
+        renderThumbnailsSyncState();
+        updateUI();
+      });
+
+      thumbnailsGrid.appendChild(el);
+      
+      // Render canvas
+      const canvas = document.getElementById(`canvas-${page.id}`);
+      if (canvas) await renderCanvas(page, canvas);
+    }
+  };
+
+  const renderThumbnailsSyncState = () => {
+    Array.from(thumbnailsGrid.children).forEach((el, i) => {
+      if (pages[i].selected) el.classList.add('selected');
+      else el.classList.remove('selected');
+    });
+  };
+
+  const renderCanvas = async (pageObj, canvas) => {
+    const viewport = pageObj.pdfjsPage.getViewport({ scale: 1, rotation: pageObj.rotation });
+    // Scale down for thumbnail
+    const scale = 200 / viewport.width;
+    const scaledViewport = pageObj.pdfjsPage.getViewport({ scale, rotation: pageObj.rotation });
+    
+    canvas.height = scaledViewport.height;
+    canvas.width = scaledViewport.width;
+    
+    const renderContext = {
+      canvasContext: canvas.getContext('2d'),
+      viewport: scaledViewport
+    };
+    await pageObj.pdfjsPage.render(renderContext).promise;
+  };
+
+  const initSortable = () => {
+    if (sortableInstance) sortableInstance.destroy();
+    sortableInstance = new Sortable(thumbnailsGrid, {
+      animation: 150,
+      onEnd: (evt) => {
+        const itemEl = pages.splice(evt.oldIndex, 1)[0];
+        pages.splice(evt.newIndex, 0, itemEl);
+        // update labels
+        Array.from(thumbnailsGrid.children).forEach((el, i) => {
+          el.querySelector('.thumbnail-label').textContent = `Page ${i + 1}`;
+        });
+        lastSelectedIndex = -1;
+      }
+    });
+  };
+
+  const updateUI = () => {
+    const hasSelection = pages.some(p => p.selected);
+    const hasSplit = pages.some(p => p.splitActive);
+    const totalPages = pages.length;
+    btnRotate.disabled = !hasSelection;
+    btnSplit.disabled = !hasSplit;
+    btnSplit.title = !hasSplit ? "Select a split marker between pages" : "";
+    btnExportImg.disabled = totalPages === 0;
+    btnDownload.disabled = totalPages === 0;
+  };
+
+  // Drag and drop handlers
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) loadPdf(e.target.files[0]);
+    e.target.value = ''; // reset
+  });
+  
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+      if (e.dataTransfer.files[0].type !== 'application/pdf') {
+        showNotification('Expected a PDF file.', 'error');
+        return;
+      }
+      loadPdf(e.dataTransfer.files[0]);
+    }
+  });
+
+  btnClear.addEventListener('click', () => {
+    currentFile = null;
+    pdfDoc = null;
+    pages = [];
+    thumbnailsGrid.innerHTML = '';
+    splitPanel.classList.add('hidden');
+    workspace.classList.add('hidden');
+    dropzone.classList.remove('hidden');
+  });
+  
+  splitClosePanelBtn.addEventListener('click', () => {
+    splitPanel.classList.add('hidden');
+  });
+
+  // Actions
+  btnRotate.addEventListener('click', async () => {
+    for (const page of pages) {
+      if (page.selected) {
+        page.rotation = (page.rotation + 90) % 360;
+        const canvas = document.getElementById(`canvas-${page.id}`);
+        if (canvas) await renderCanvas(page, canvas);
+      }
+    }
+  });
+
+  const generateMutatedDoc = async () => {
+    const newDoc = await PDFDocument.create();
+    const pagesToCompile = pages.some(p => p.selected) ? pages.filter(p => p.selected) : pages;
+    const copiedPages = await newDoc.copyPages(pdfDoc, pagesToCompile.map(p => p.originalIndex));
+    copiedPages.forEach((p, i) => {
+      // apply relative rotation
+      const extraRotation = pagesToCompile[i].rotation;
+      if (extraRotation !== 0) {
+        const currentRot = p.getRotation().angle;
+        p.setRotation(degrees(currentRot + extraRotation));
+      }
+      newDoc.addPage(p);
+    });
+    return newDoc;
+  };
+
+  btnDownload.addEventListener('click', async () => {
+    try {
+      btnDownload.innerHTML = '<div class="spinner"></div>';
+      const newDoc = await generateMutatedDoc();
+      const pdfBytes = await newDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `edited_${currentFile.name}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      showNotification('Error downloading PDF', 'error');
+    } finally {
+      btnDownload.innerHTML = 'Download';
+    }
+  });
+
+  btnSplit.addEventListener('click', async () => {
+    try {
+      btnSplit.innerHTML = '<div class="spinner"></div>';
+      // Determine split indices
+      const splitIndices = [0];
+      pages.forEach((p, i) => {
+        if (p.splitActive) {
+          splitIndices.push(i + 1); // Split occurs AFTER this page
+        }
+      });
+      splitIndices.push(pages.length);
+      
+      const uniqueSplits = [...new Set(splitIndices)];
+
+      // If only one chunk, it's just a download
+      if (uniqueSplits.length === 2) {
+        showNotification('Selected markers did not create multiple files.', 'info');
+        btnDownload.click();
+        return;
+      }
+
+      const zipData = {};
+      const chunksData = [];
+      const fileBuffer = await currentFile.arrayBuffer();
+      
+      for (let i = 0; i < uniqueSplits.length - 1; i++) {
+        const start = uniqueSplits[i];
+        const end = uniqueSplits[i + 1];
+        if (start === end) continue;
+        
+        // Load a fresh instance of the document for each chunk
+        const freshSourceDoc = await PDFDocument.load(fileBuffer);
+        const chunkDoc = await PDFDocument.create();
+        
+        const indicesToCopy = [];
+        for (let j = start; j < end; j++) {
+          indicesToCopy.push(pages[j].originalIndex);
+        }
+        
+        const copied = await chunkDoc.copyPages(freshSourceDoc, indicesToCopy);
+        copied.forEach((p, index) => {
+          const extraRotation = pages[start + index].rotation;
+          if (extraRotation !== 0) {
+            const currentRot = p.getRotation().angle;
+            p.setRotation(degrees(currentRot + extraRotation));
+          }
+          chunkDoc.addPage(p);
+        });
+        
+        const bytes = await chunkDoc.save();
+        chunksData.push({ index: i + 1, bytes, count: indicesToCopy.length });
+      }
+      
+      // Render Split UI
+      splitList.innerHTML = '';
+      chunksData.forEach(chunk => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.padding = '1rem';
+        row.style.background = 'var(--bg-color)';
+        row.style.borderRadius = 'var(--radius-sm)';
+        row.style.border = '1px solid var(--border-color)';
+        row.style.alignItems = 'center';
+        row.innerHTML = `
+          <div><strong>Part ${chunk.index}</strong> <span style="color: var(--text-secondary); margin-left: 0.5rem;">(${chunk.count} pages)</span></div>
+          <button class="btn download-chunk-btn" style="padding: 0.4rem 0.8rem;">Download</button>
+        `;
+        row.querySelector('.download-chunk-btn').addEventListener('click', () => {
+          const blob = new Blob([chunk.bytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `split_part_${chunk.index}.pdf`;
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+        splitList.appendChild(row);
+      });
+
+      splitPanel.classList.remove('hidden');
+      splitPanel.scrollIntoView({ behavior: 'smooth' });
+      
+    } catch (err) {
+      showNotification('Error splitting PDF', 'error');
+    } finally {
+      btnSplit.innerHTML = 'Split';
+    }
+  });
+
+  btnExportImg.addEventListener('click', async () => {
+    try {
+      btnExportImg.innerHTML = '<div class="spinner"></div>';
+      const zipData = {};
+      const pagesToExport = pages.some(p => p.selected) ? pages.filter(p => p.selected) : pages;
+      
+      for (let i = 0; i < pagesToExport.length; i++) {
+        const page = pagesToExport[i];
+        // Render at a higher scale for export
+        const viewport = page.pdfjsPage.getViewport({ scale: 2, rotation: page.rotation });
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.pdfjsPage.render({
+          canvasContext: canvas.getContext('2d'),
+          viewport: viewport
+        }).promise;
+        
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        const arrayBuffer = await blob.arrayBuffer();
+        zipData[`page_${i + 1}.png`] = new Uint8Array(arrayBuffer);
+      }
+      
+      const zipped = fflate.zipSync(zipData);
+      const blob = new Blob([zipped], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `images_${currentFile.name.replace('.pdf', '')}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showNotification('Images exported as ZIP', 'success');
+    } catch (err) {
+      showNotification('Error exporting images', 'error');
+    } finally {
+      btnExportImg.innerHTML = 'Export Images';
+    }
+  });
+}
