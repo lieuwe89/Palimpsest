@@ -49,7 +49,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
+  padding: 1.5rem 2rem;
   background: white;
   border-bottom: var(--border-width-thick) solid var(--border-color);
   position: sticky;
