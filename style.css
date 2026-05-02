@@ -607,6 +607,24 @@ body {
   color: #333;
 }
 
+.definition-title {
+  color: var(--bauhaus-red);
+  margin-bottom: 0.25rem !important;
+}
+
+.phonetic {
+  font-style: italic;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.definition em {
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
 .about-footer {
   display: flex;
   flex-direction: column;
