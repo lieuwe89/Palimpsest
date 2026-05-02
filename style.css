@@ -456,40 +456,78 @@ body {
 /* Split Handle */
 .split-handle {
   position: absolute;
-  right: -1rem;
+  right: -1.25rem; /* Centered in the 2rem gap */
   top: 0;
   bottom: 0;
-  width: 2rem;
-  background: transparent;
+  width: 0.5rem;
   z-index: 10;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
 }
 
-.thumbnail-card:hover .split-handle, .split-handle.active {
-  opacity: 1;
+/* Hide split handle on the last page as it has no meaning */
+.thumbnail-card:last-child .split-handle {
+  display: none !important;
 }
 
-.split-handle::after {
+/* Vertical indicator line */
+.split-handle::before {
   content: '';
-  width: var(--border-width-thick);
-  height: 100%;
-  background: var(--border-color);
-  transition: background 0.2s;
+  position: absolute;
+  top: 10%;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  border-left: 2px dashed var(--border-color);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.thumbnail-card:hover .split-handle::before {
+  opacity: 0.3;
+}
+
+.split-handle.active::before {
+  opacity: 1;
+  border-left: 4px solid var(--bauhaus-red);
+}
+
+/* Geometric interactive handle */
+.split-handle::after {
+  content: '✂';
+  font-size: 0.8rem;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: var(--border-width) solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  opacity: 0;
+  transform: rotate(45deg) scale(0.5);
+  transition: all 0.2s steps(4);
+}
+
+.thumbnail-card:hover .split-handle::after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
 }
 
 .split-handle:hover::after {
-  background: var(--bauhaus-red);
-  width: 6px;
+  background: var(--bauhaus-yellow);
+  transform: rotate(0deg) scale(1.1);
 }
 
 .split-handle.active::after {
+  opacity: 1;
   background: var(--bauhaus-red);
-  width: 10px;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+  color: white;
+  transform: rotate(0deg) scale(1.1);
+  box-shadow: 4px 4px 0 var(--border-color);
 }
 
 /* Custom Input for Filename */
