@@ -528,6 +528,9 @@ body {
   .about-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .about-block.full-width {
+    grid-column: span 2;
+  }
 }
 
 .about-block {
