@@ -87,7 +87,7 @@ export function initEditPdf() {
       el.dataset.id = page.id;
       el.innerHTML = `
         <div class="thumbnail-canvas-container">
-          <canvas id="canvas-${page.id}"></canvas>
+          <canvas id="canvas-${page.id}" style="max-height: 200px; width: auto; display: block; margin: 0 auto;"></canvas>
         </div>
         <div class="thumbnail-label">Page ${i + 1}</div>
       `;

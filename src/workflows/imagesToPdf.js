@@ -42,7 +42,7 @@ export function initImagesToPdf() {
       el.innerHTML = `
         <button class="thumbnail-remove" data-id="${f.id}">&times;</button>
         <div class="thumbnail-canvas-container">
-          <img src="${f.url}" alt="${f.file.name}" />
+          <img src="${f.url}" alt="${f.file.name}" style="max-height: 200px; width: auto; display: block; margin: 0 auto;" />
         </div>
         <div class="thumbnail-label">${f.file.name}</div>
       `;
