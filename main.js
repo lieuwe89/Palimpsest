@@ -7,10 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     'home': document.getElementById('view-home'),
     'edit-pdf': document.getElementById('view-edit-pdf'),
     'merge-pdfs': document.getElementById('view-merge-pdfs'),
-    'images-to-pdf': document.getElementById('view-images-to-pdf')
+    'images-to-pdf': document.getElementById('view-images-to-pdf'),
+    'about': document.getElementById('view-about')
   };
 
   const navHomeBtn = document.getElementById('nav-home');
+  const navAboutBtn = document.getElementById('nav-about');
   const logoHomeBtn = document.getElementById('logo-home');
 
   function switchView(viewId) {
@@ -36,14 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
       views[viewId].classList.add('active');
     }
     
-    if (viewId === 'home') {
-      navHomeBtn.classList.add('active');
-    } else {
-      navHomeBtn.classList.remove('active');
-    }
+    // Update nav active state
+    navHomeBtn.classList.toggle('active', viewId === 'home');
+    navAboutBtn.classList.toggle('active', viewId === 'about');
   }
 
   navHomeBtn.addEventListener('click', () => switchView('home'));
+  navAboutBtn.addEventListener('click', () => switchView('about'));
   logoHomeBtn.addEventListener('click', () => switchView('home'));
 
   document.querySelectorAll('.action-card').forEach(card => {
