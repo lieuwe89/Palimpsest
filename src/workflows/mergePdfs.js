@@ -52,12 +52,14 @@ export function initMergePdfs() {
       el.className = 'list-item';
       el.dataset.id = f.id;
       el.innerHTML = `
-        <div class="drag-handle"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></div>
+        <div class="drag-handle" title="Drag to reorder">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </div>
         <div class="file-info">
           <div class="file-name" title="${f.file.name}">${f.file.name}</div>
           <div class="file-meta">${f.pageCount} page(s)</div>
         </div>
-        <button class="remove-btn" data-id="${f.id}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+        <button class="remove-btn" data-id="${f.id}" title="Remove file">&times;</button>
       `;
       el.querySelector('.remove-btn').addEventListener('click', () => {
         files = files.filter(file => file.id !== f.id);

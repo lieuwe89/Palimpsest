@@ -32,7 +32,7 @@ export function initEditPdf() {
     try {
       dropzone.classList.add('hidden');
       workspace.classList.remove('hidden');
-      thumbnailsGrid.innerHTML = '<div class="spinner" style="margin: 2rem auto; width: 40px; height: 40px;"></div>';
+      thumbnailsGrid.innerHTML = '<div class="spinner" style="margin: 2rem auto;"></div>';
       
       currentFile = file;
       const arrayBuffer = await file.arrayBuffer();
@@ -315,16 +315,13 @@ export function initEditPdf() {
       splitList.innerHTML = '';
       chunksData.forEach(chunk => {
         const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.justifyContent = 'space-between';
-        row.style.padding = '1rem';
-        row.style.background = 'var(--bg-color)';
-        row.style.borderRadius = 'var(--radius-sm)';
-        row.style.border = '1px solid var(--border-color)';
-        row.style.alignItems = 'center';
+        row.className = 'list-item';
         row.innerHTML = `
-          <div><strong>Part ${chunk.index}</strong> <span style="color: var(--text-secondary); margin-left: 0.5rem;">(${chunk.count} pages)</span></div>
-          <button class="btn download-chunk-btn" style="padding: 0.4rem 0.8rem;">Download</button>
+          <div class="file-info">
+            <div class="file-name">Part ${chunk.index}</div>
+            <div class="file-meta">${chunk.count} pages</div>
+          </div>
+          <button class="btn primary download-chunk-btn">Download</button>
         `;
         row.querySelector('.download-chunk-btn').addEventListener('click', () => {
           const blob = new Blob([chunk.bytes], { type: 'application/pdf' });
