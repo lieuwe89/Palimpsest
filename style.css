@@ -66,10 +66,35 @@ body {
   text-transform: uppercase;
   letter-spacing: -0.05em;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .logo img {
-  height: 40px; /* Logo height */
+  height: 40px;
+  display: block;
+}
+
+.app-nav {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+  margin-left: 1rem; /* Minimum gap from logo */
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    padding: 1rem;
+  }
+  .logo img {
+    height: 32px;
+  }
+  .app-nav {
+    gap: 0.5rem;
+  }
+  .nav-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+  }
 }
 
 .nav-btn {
