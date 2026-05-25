@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && tar czf - -C dist . | ssh -i ~/.ssh/github_deploy f_000556cb@194.213.127.46 'tar xzf - -C ~/playground.lieuwejongsma.nl/palimpsest/'"
   },
   "devDependencies": {
     "vite": "^5.2.0"
