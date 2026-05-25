@@ -12,6 +12,7 @@ export function initEditPdf() {
   
   // Toolbar buttons
   const btnRotate = document.getElementById('edit-rotate-btn');
+  const btnSpread = document.getElementById('edit-spread-btn');
   const btnSplit = document.getElementById('edit-split-btn');
   const btnExportImg = document.getElementById('edit-export-img-btn');
   const btnDownload = document.getElementById('edit-download-btn');
@@ -59,7 +60,8 @@ export function initEditPdf() {
           pdfjsPage,
           rotation: 0,
           selected: false,
-          splitActive: false
+          splitActive: false,
+          spreadHalf: null
         });
       }
 
@@ -132,19 +134,51 @@ export function initEditPdf() {
   };
 
   const renderCanvas = async (pageObj, canvas) => {
-    const viewport = pageObj.pdfjsPage.getViewport({ scale: 1, rotation: pageObj.rotation });
-    // Scale down for thumbnail
-    const scale = 200 / viewport.width;
-    const scaledViewport = pageObj.pdfjsPage.getViewport({ scale, rotation: pageObj.rotation });
-    
-    canvas.height = scaledViewport.height;
-    canvas.width = scaledViewport.width;
-    
-    const renderContext = {
-      canvasContext: canvas.getContext('2d'),
-      viewport: scaledViewport
-    };
-    await pageObj.pdfjsPage.render(renderContext).promise;
+    if (!pageObj.spreadHalf) {
+      const viewport = pageObj.pdfjsPage.getViewport({ scale: 1, rotation: pageObj.rotation });
+      const scale = 200 / viewport.width;
+      const scaledViewport = pageObj.pdfjsPage.getViewport({ scale, rotation: pageObj.rotation });
+      canvas.height = scaledViewport.height;
+      canvas.width = scaledViewport.width;
+      await pageObj.pdfjsPage.render({
+        canvasContext: canvas.getContext('2d'),
+        viewport: scaledViewport
+      }).promise;
+      return;
+    }
+
+    // Half-page: render native page to temp, crop half into visible canvas, then rotate visible if needed.
+    const nativeFullVp = pageObj.pdfjsPage.getViewport({ scale: 1, rotation: 0 });
+    const scale = 200 / nativeFullVp.width;
+    const nativeVp = pageObj.pdfjsPage.getViewport({ scale, rotation: 0 });
+
+    const temp = document.createElement('canvas');
+    temp.width = nativeVp.width;
+    temp.height = nativeVp.height;
+    await pageObj.pdfjsPage.render({
+      canvasContext: temp.getContext('2d'),
+      viewport: nativeVp
+    }).promise;
+
+    const horizontal = pageObj.spreadHalf === 'left' || pageObj.spreadHalf === 'right';
+    const halfW = horizontal ? nativeVp.width / 2 : nativeVp.width;
+    const halfH = horizontal ? nativeVp.height : nativeVp.height / 2;
+    const sx = pageObj.spreadHalf === 'right' ? nativeVp.width / 2 : 0;
+    // pdf.js canvas y-axis grows down; visual "top half" = upper pixels = sy=0
+    const sy = pageObj.spreadHalf === 'bottom' ? nativeVp.height / 2 : 0;
+
+    // Apply rotation visually via CSS transform won't change canvas dims used by layout.
+    // Render rotated bitmap directly: pick output canvas dims based on rotation.
+    const rot = ((pageObj.rotation % 360) + 360) % 360;
+    const rotated = rot === 90 || rot === 270;
+    canvas.width = rotated ? halfH : halfW;
+    canvas.height = rotated ? halfW : halfH;
+    const ctx = canvas.getContext('2d');
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((rot * Math.PI) / 180);
+    ctx.drawImage(temp, sx, sy, halfW, halfH, -halfW / 2, -halfH / 2, halfW, halfH);
+    ctx.restore();
   };
 
   const initSortable = () => {
@@ -165,9 +199,14 @@ export function initEditPdf() {
 
   const updateUI = () => {
     const hasSelection = pages.some(p => p.selected);
+    const hasSpreadCandidate = pages.some(p => p.selected && p.spreadHalf === null);
     const hasSplit = pages.some(p => p.splitActive);
     const totalPages = pages.length;
     btnRotate.disabled = !hasSelection;
+    btnSpread.disabled = !hasSpreadCandidate;
+    btnSpread.title = !hasSpreadCandidate
+      ? "Select unsplit pages first"
+      : "Split each selected page into two at the midpoint";
     btnSplit.disabled = !hasSplit;
     btnSplit.title = !hasSplit ? "Select a split marker between pages" : "";
     btnExportImg.disabled = totalPages === 0;
@@ -223,19 +262,89 @@ export function initEditPdf() {
     }
   });
 
+  btnSpread.addEventListener('click', async () => {
+    try {
+      btnSpread.innerHTML = '<div class="spinner"></div>';
+      const next = [];
+      let anySplit = false;
+      for (const page of pages) {
+        if (!page.selected || page.spreadHalf !== null) {
+          next.push(page);
+          continue;
+        }
+        const native = page.pdfjsPage.getViewport({ scale: 1, rotation: 0 });
+        const landscape = native.width > native.height;
+        const halves = landscape ? ['left', 'right'] : ['top', 'bottom'];
+        for (const half of halves) {
+          next.push({
+            ...page,
+            id: `page-half-${half}-${Date.now()}-${Math.random()}`,
+            rotation: 0,
+            selected: false,
+            splitActive: false,
+            spreadHalf: half
+          });
+        }
+        anySplit = true;
+      }
+      if (!anySplit) {
+        showNotification('Selected pages are already split halves.', 'info');
+        return;
+      }
+      pages = next;
+      lastSelectedIndex = -1;
+      await renderThumbnails();
+      initSortable();
+      updateUI();
+    } catch (err) {
+      console.error('Error splitting spread:', err);
+      showNotification('Error splitting spread pages.', 'error');
+    } finally {
+      btnSpread.innerHTML = 'Split Spread';
+    }
+  });
+
+  // Append one source page (whole or spread-half) onto targetDoc, sourced from sourceDoc.
+  const appendSourcePage = async (targetDoc, sourceDoc, sourcePage) => {
+    if (!sourcePage.spreadHalf) {
+      const [copied] = await targetDoc.copyPages(sourceDoc, [sourcePage.originalIndex]);
+      if (sourcePage.rotation !== 0) {
+        const currentRot = copied.getRotation().angle;
+        copied.setRotation(degrees(currentRot + sourcePage.rotation));
+      }
+      targetDoc.addPage(copied);
+      return;
+    }
+    const srcPage = sourceDoc.getPage(sourcePage.originalIndex);
+    const srcW = srcPage.getWidth();
+    const srcH = srcPage.getHeight();
+    const bboxes = {
+      left:   { left: 0,        bottom: 0,        right: srcW / 2, top: srcH },
+      right:  { left: srcW / 2, bottom: 0,        right: srcW,     top: srcH },
+      top:    { left: 0,        bottom: srcH / 2, right: srcW,     top: srcH },
+      bottom: { left: 0,        bottom: 0,        right: srcW,     top: srcH / 2 }
+    };
+    const halfDims = {
+      left:   [srcW / 2, srcH],
+      right:  [srcW / 2, srcH],
+      top:    [srcW,     srcH / 2],
+      bottom: [srcW,     srcH / 2]
+    };
+    const embedded = await targetDoc.embedPage(srcPage, bboxes[sourcePage.spreadHalf]);
+    const [w, h] = halfDims[sourcePage.spreadHalf];
+    const newPage = targetDoc.addPage([w, h]);
+    newPage.drawPage(embedded, { x: 0, y: 0, width: w, height: h });
+    if (sourcePage.rotation !== 0) {
+      newPage.setRotation(degrees(sourcePage.rotation));
+    }
+  };
+
   const generateMutatedDoc = async () => {
     const newDoc = await PDFDocument.create();
     const pagesToCompile = pages.some(p => p.selected) ? pages.filter(p => p.selected) : pages;
-    const copiedPages = await newDoc.copyPages(pdfDoc, pagesToCompile.map(p => p.originalIndex));
-    copiedPages.forEach((p, i) => {
-      // apply relative rotation
-      const extraRotation = pagesToCompile[i].rotation;
-      if (extraRotation !== 0) {
-        const currentRot = p.getRotation().angle;
-        p.setRotation(degrees(currentRot + extraRotation));
-      }
-      newDoc.addPage(p);
-    });
+    for (const sp of pagesToCompile) {
+      await appendSourcePage(newDoc, pdfDoc, sp);
+    }
     return newDoc;
   };
 
@@ -279,36 +388,24 @@ export function initEditPdf() {
         return;
       }
 
-      const zipData = {};
       const chunksData = [];
       const fileBuffer = await currentFile.arrayBuffer();
-      
+
       for (let i = 0; i < uniqueSplits.length - 1; i++) {
         const start = uniqueSplits[i];
         const end = uniqueSplits[i + 1];
         if (start === end) continue;
-        
-        // Load a fresh instance of the document for each chunk
+
+        // Load a fresh instance of the source doc per chunk — copyPages/embedPage mutate it.
         const freshSourceDoc = await PDFDocument.load(fileBuffer);
         const chunkDoc = await PDFDocument.create();
-        
-        const indicesToCopy = [];
+        let count = 0;
         for (let j = start; j < end; j++) {
-          indicesToCopy.push(pages[j].originalIndex);
+          await appendSourcePage(chunkDoc, freshSourceDoc, pages[j]);
+          count++;
         }
-        
-        const copied = await chunkDoc.copyPages(freshSourceDoc, indicesToCopy);
-        copied.forEach((p, index) => {
-          const extraRotation = pages[start + index].rotation;
-          if (extraRotation !== 0) {
-            const currentRot = p.getRotation().angle;
-            p.setRotation(degrees(currentRot + extraRotation));
-          }
-          chunkDoc.addPage(p);
-        });
-        
         const bytes = await chunkDoc.save();
-        chunksData.push({ index: i + 1, bytes, count: indicesToCopy.length });
+        chunksData.push({ index: i + 1, bytes, count });
       }
       
       // Render Split UI
@@ -353,16 +450,42 @@ export function initEditPdf() {
       
       for (let i = 0; i < pagesToExport.length; i++) {
         const page = pagesToExport[i];
-        // Render at a higher scale for export
-        const viewport = page.pdfjsPage.getViewport({ scale: 2, rotation: page.rotation });
         const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        await page.pdfjsPage.render({
-          canvasContext: canvas.getContext('2d'),
-          viewport: viewport
-        }).promise;
-        
+
+        if (!page.spreadHalf) {
+          const viewport = page.pdfjsPage.getViewport({ scale: 2, rotation: page.rotation });
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.pdfjsPage.render({
+            canvasContext: canvas.getContext('2d'),
+            viewport: viewport
+          }).promise;
+        } else {
+          const nativeVp = page.pdfjsPage.getViewport({ scale: 2, rotation: 0 });
+          const temp = document.createElement('canvas');
+          temp.width = nativeVp.width;
+          temp.height = nativeVp.height;
+          await page.pdfjsPage.render({
+            canvasContext: temp.getContext('2d'),
+            viewport: nativeVp
+          }).promise;
+          const horizontal = page.spreadHalf === 'left' || page.spreadHalf === 'right';
+          const halfW = horizontal ? nativeVp.width / 2 : nativeVp.width;
+          const halfH = horizontal ? nativeVp.height : nativeVp.height / 2;
+          const sx = page.spreadHalf === 'right' ? nativeVp.width / 2 : 0;
+          const sy = page.spreadHalf === 'bottom' ? nativeVp.height / 2 : 0;
+          const rot = ((page.rotation % 360) + 360) % 360;
+          const rotated = rot === 90 || rot === 270;
+          canvas.width = rotated ? halfH : halfW;
+          canvas.height = rotated ? halfW : halfH;
+          const ctx = canvas.getContext('2d');
+          ctx.save();
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.rotate((rot * Math.PI) / 180);
+          ctx.drawImage(temp, sx, sy, halfW, halfH, -halfW / 2, -halfH / 2, halfW, halfH);
+          ctx.restore();
+        }
+
         const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
         const arrayBuffer = await blob.arrayBuffer();
         zipData[`page_${i + 1}.png`] = new Uint8Array(arrayBuffer);
