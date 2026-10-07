@@ -8,6 +8,7 @@ Palimpsest is a modern, client-side web application for quick, secure, and intui
 - **Merge PDFs**: Combine multiple files seamlessly with a high-contrast sorting interface.
 - **Images to PDF**: Batch convert PNG and JPG files into a single, cohesive PDF document with automatic aspect-ratio preservation.
 - **Compress PDF**: Shrink scanned and photo-heavy PDFs by downsampling and recompressing embedded JPEG images (Small / Standard / High presets).
+- **OCR PDF**: Add an invisible, searchable text layer to scanned PDFs with Tesseract.js (Dutch / English). Runs locally; the OCR engine and language models are self-hosted (`npm run dev`/`build` copy them into `public/tesseract/`).
 - **Privacy First**: 100% browser-based. No PDF files ever leave your device or are uploaded to any server.
 
 ## Tech Stack

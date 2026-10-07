@@ -1,5 +1,6 @@
 node_modules/
 dist/
+public/tesseract/
 .DS_Store
 docs/superpowers/
 .superpowers/

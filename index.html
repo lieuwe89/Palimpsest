@@ -72,6 +72,14 @@
             <h2>Compress PDF</h2>
             <p>Shrink scanned and photo-heavy PDFs by downsampling images.</p>
           </div>
+
+          <div class="action-card" data-target="ocr-pdf">
+            <div class="card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+            </div>
+            <h2>OCR PDF</h2>
+            <p>Make scanned PDFs searchable and selectable with local text recognition.</p>
+          </div>
         </div>
       </section>
 
@@ -171,6 +179,28 @@
         </div>
 
         <div id="compress-info" class="sortable-list"></div>
+      </section>
+
+      <!-- OCR PDF View -->
+      <section id="view-ocr-pdf" class="view hidden">
+        <div class="toolbar">
+          <h2>OCR PDF</h2>
+          <div class="toolbar-actions" style="display:flex; gap:1rem; align-items:center;">
+            <select id="ocr-lang" title="Language of the document">
+              <option value="nld" selected>Nederlands</option>
+              <option value="eng">English</option>
+              <option value="nld+eng">Nederlands + English</option>
+            </select>
+            <button id="ocr-download-btn" class="btn primary" disabled>Recognise & Download</button>
+          </div>
+        </div>
+
+        <div id="ocr-dropzone" class="dropzone compact">
+          <input type="file" id="ocr-file-input" accept="application/pdf" hidden />
+          <p>Drag & Drop a scanned PDF here or <span class="text-accent">click to browse</span></p>
+        </div>
+
+        <div id="ocr-info" class="sortable-list"></div>
       </section>
 
       <!-- About View -->

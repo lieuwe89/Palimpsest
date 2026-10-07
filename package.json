@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-tesseract.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-tesseract.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "npm run build && tar czf - -C dist . | ssh -i ~/.ssh/github_deploy f_000556cb@194.213.127.46 'tar xzf - -C ~/playground.lieuwejongsma.nl/palimpsest/'"
@@ -13,9 +15,12 @@
     "vite": "^5.2.0"
   },
   "dependencies": {
+    "@tesseract.js-data/eng": "^1.0.0",
+    "@tesseract.js-data/nld": "^1.0.0",
     "fflate": "^0.8.2",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.1.392",
-    "sortablejs": "^1.15.2"
+    "sortablejs": "^1.15.2",
+    "tesseract.js": "^7.0.0"
   }
 }
