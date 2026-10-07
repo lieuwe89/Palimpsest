@@ -456,6 +456,30 @@ body {
   accent-color: var(--bauhaus-dark);
 }
 
+.check-badge {
+  width: 72px;
+  flex-shrink: 0;
+  padding: 0.5rem 0;
+  text-align: center;
+  font-weight: 800;
+  text-transform: uppercase;
+  border: var(--border-width) solid var(--border-color);
+}
+
+.check-badge.pass {
+  background: var(--bauhaus-blue);
+  color: white;
+}
+
+.check-badge.fail {
+  background: var(--bauhaus-red);
+  color: white;
+}
+
+.check-badge.warn {
+  background: var(--bauhaus-yellow);
+}
+
 .meta-row {
   padding: 1rem 1.5rem;
 }
@@ -619,7 +643,7 @@ input.meta-value:focus {
 }
 
 /* Custom Input for Filename */
-#merge-filename, #img-filename, #compress-preset, #ocr-lang {
+#merge-filename, #img-filename, #compress-preset, #ocr-lang, #a11y-title, #a11y-lang {
   border: var(--border-width) solid var(--border-color);
   padding: 0.75rem;
   font-family: var(--font-family);
@@ -628,7 +652,7 @@ input.meta-value:focus {
   background: white;
 }
 
-#merge-filename:focus, #img-filename:focus, #compress-preset:focus, #ocr-lang:focus {
+#merge-filename:focus, #img-filename:focus, #compress-preset:focus, #ocr-lang:focus, #a11y-title:focus, #a11y-lang:focus {
   outline: none;
   background: var(--bauhaus-yellow);
 }

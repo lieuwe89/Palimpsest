@@ -88,6 +88,14 @@
             <h2>Metadata</h2>
             <p>See what a PDF says about its author and software, then edit or wipe it.</p>
           </div>
+
+          <div class="action-card" data-target="accessibility-pdf">
+            <div class="card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="4" r="2"></circle><line x1="4" y1="8" x2="20" y2="8"></line><line x1="12" y1="8" x2="12" y2="14"></line><polyline points="8 21 12 14 16 21"></polyline></svg>
+            </div>
+            <h2>Accessibility</h2>
+            <p>Check a PDF against the basics screen readers need, and fix title and language.</p>
+          </div>
         </div>
       </section>
 
@@ -229,6 +237,31 @@
         </div>
 
         <div id="meta-fields" class="sortable-list"></div>
+      </section>
+
+      <!-- Accessibility View -->
+      <section id="view-accessibility-pdf" class="view hidden">
+        <div class="toolbar">
+          <h2>Accessibility</h2>
+          <div class="toolbar-actions" style="display:flex; gap:1rem; align-items:center;">
+            <input type="text" id="a11y-title" placeholder="Document title" />
+            <select id="a11y-lang" title="Document language">
+              <option value="nl-NL">Nederlands</option>
+              <option value="en-GB">English (UK)</option>
+              <option value="en-US">English (US)</option>
+              <option value="de-DE">Deutsch</option>
+              <option value="fr-FR">Français</option>
+            </select>
+            <button id="a11y-fix-btn" class="btn primary" disabled>Fix & Download</button>
+          </div>
+        </div>
+
+        <div id="a11y-dropzone" class="dropzone compact">
+          <input type="file" id="a11y-file-input" accept="application/pdf" hidden />
+          <p>Drag & Drop a PDF here or <span class="text-accent">click to browse</span></p>
+        </div>
+
+        <div id="a11y-report" class="sortable-list"></div>
       </section>
 
       <!-- About View -->

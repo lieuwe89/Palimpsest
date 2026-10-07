@@ -4,6 +4,7 @@ import { initImagesToPdf } from './src/workflows/imagesToPdf.js';
 import { initCompressPdf } from './src/workflows/compressPdf.js';
 import { initOcrPdf } from './src/workflows/ocrPdf.js';
 import { initMetadataPdf } from './src/workflows/metadataPdf.js';
+import { initAccessibilityPdf } from './src/workflows/accessibilityPdf.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const views = {
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'compress-pdf': document.getElementById('view-compress-pdf'),
     'ocr-pdf': document.getElementById('view-ocr-pdf'),
     'metadata-pdf': document.getElementById('view-metadata-pdf'),
+    'accessibility-pdf': document.getElementById('view-accessibility-pdf'),
     'about': document.getElementById('view-about')
   };
 
@@ -67,4 +69,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initCompressPdf();
   initOcrPdf();
   initMetadataPdf();
+  initAccessibilityPdf();
 });
