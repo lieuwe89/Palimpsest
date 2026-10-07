@@ -1,5 +1,7 @@
 <IfModule mod_mime.c>
   AddType text/javascript .js .mjs
+  # qpdf's .wasm needs this type for WebAssembly.instantiateStreaming.
+  AddType application/wasm .wasm
   # Tesseract language models are fetched as raw .gz and gunzipped by the worker;
   # stop Apache from adding Content-Encoding so the browser doesn't decompress them first.
   RemoveEncoding .gz
