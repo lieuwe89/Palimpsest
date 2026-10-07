@@ -80,6 +80,14 @@
             <h2>OCR PDF</h2>
             <p>Make scanned PDFs searchable and selectable with local text recognition.</p>
           </div>
+
+          <div class="action-card" data-target="metadata-pdf">
+            <div class="card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16" y2="16"></line></svg>
+            </div>
+            <h2>Metadata</h2>
+            <p>See what a PDF says about its author and software, then edit or wipe it.</p>
+          </div>
         </div>
       </section>
 
@@ -201,6 +209,24 @@
         </div>
 
         <div id="ocr-info" class="sortable-list"></div>
+      </section>
+
+      <!-- Metadata View -->
+      <section id="view-metadata-pdf" class="view hidden">
+        <div class="toolbar">
+          <h2>Metadata</h2>
+          <div class="toolbar-actions" style="display:flex; gap:1rem; align-items:center;">
+            <button id="meta-clear-btn" class="btn" disabled>Remove All</button>
+            <button id="meta-download-btn" class="btn primary" disabled>Save & Download</button>
+          </div>
+        </div>
+
+        <div id="meta-dropzone" class="dropzone compact">
+          <input type="file" id="meta-file-input" accept="application/pdf" hidden />
+          <p>Drag & Drop a PDF here or <span class="text-accent">click to browse</span></p>
+        </div>
+
+        <div id="meta-fields" class="sortable-list"></div>
       </section>
 
       <!-- About View -->

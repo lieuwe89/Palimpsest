@@ -1,5 +1,6 @@
 import { PDFDocument, PDFName, PDFArray, PDFDict, PDFRawStream, PDFRef, PDFNumber } from 'pdf-lib';
 import { showNotification } from '../utils/notifications.js';
+import { bindPdfDropzone, downloadBytes } from '../utils/dropzone.js';
 
 export const PRESETS = {
   small: { dpi: 120, quality: 0.65 },
@@ -128,31 +129,10 @@ export function initCompressPdf() {
     });
   };
 
-  const handleFiles = (newFiles) => {
-    const pdf = Array.from(newFiles).find(f => f.type === 'application/pdf');
-    if (!pdf) {
-      showNotification('Expected a PDF.', 'error');
-      return;
-    }
+  bindPdfDropzone(dropzone, fileInput, (pdf) => {
     file = pdf;
     renderInfo(`Original size: ${formatSize(file.size)}`);
     downloadBtn.disabled = false;
-  };
-
-  dropzone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => {
-    handleFiles(e.target.files);
-    e.target.value = '';
-  });
-  dropzone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropzone.classList.add('dragover');
-  });
-  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-  dropzone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('dragover');
-    handleFiles(e.dataTransfer.files);
   });
 
   downloadBtn.addEventListener('click', async () => {
@@ -176,12 +156,7 @@ export function initCompressPdf() {
       const pct = Math.round((pdfBytes.length / original.size) * 100);
       renderInfo(`${formatSize(original.size)} → ${formatSize(pdfBytes.length)} (${pct}%)`);
 
-      const url = URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = original.name.replace(/\.pdf$/i, '') + '-compressed.pdf';
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBytes(pdfBytes, original.name.replace(/\.pdf$/i, '') + '-compressed.pdf');
       showNotification('PDF compressed successfully!', 'success');
     } catch (err) {
       if (err.message && err.message.includes('encrypted')) {

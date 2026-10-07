@@ -6,6 +6,7 @@ import {
 } from 'pdf-lib';
 import { pdfjsLib } from '../utils/pdfWorker.js';
 import { showNotification } from '../utils/notifications.js';
+import { bindPdfDropzone, downloadBytes } from '../utils/dropzone.js';
 
 const RENDER_DPI = 300;
 // Self-hosted (see scripts/copy-tesseract.mjs). Absolute, because the worker resolves these from a blob: URL.
@@ -144,31 +145,10 @@ export function initOcrPdf() {
     });
   };
 
-  const handleFiles = (newFiles) => {
-    const pdf = Array.from(newFiles).find(f => f.type === 'application/pdf');
-    if (!pdf) {
-      showNotification('Expected a PDF.', 'error');
-      return;
-    }
+  bindPdfDropzone(dropzone, fileInput, (pdf) => {
     file = pdf;
     renderInfo('Ready for text recognition');
     downloadBtn.disabled = false;
-  };
-
-  dropzone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => {
-    handleFiles(e.target.files);
-    e.target.value = '';
-  });
-  dropzone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropzone.classList.add('dragover');
-  });
-  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-  dropzone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('dragover');
-    handleFiles(e.dataTransfer.files);
   });
 
   downloadBtn.addEventListener('click', async () => {
@@ -197,12 +177,7 @@ export function initOcrPdf() {
       const secs = Math.round((performance.now() - started) / 1000);
       renderInfo(`Text added to ${ocrPages} page(s) in ${secs}s` + (skipped ? `, ${skipped} already had text` : ''));
 
-      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = original.name.replace(/\.pdf$/i, '') + '-ocr.pdf';
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBytes(bytes, original.name.replace(/\.pdf$/i, '') + '-ocr.pdf');
       showNotification('Text recognition complete!', 'success');
     } catch (err) {
       if (err.message && err.message.includes('encrypted')) {
