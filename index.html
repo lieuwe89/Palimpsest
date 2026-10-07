@@ -64,6 +64,14 @@
             <h2>Images to PDF</h2>
             <p>Convert JPG/PNG images into a single PDF document.</p>
           </div>
+
+          <div class="action-card" data-target="compress-pdf">
+            <div class="card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </div>
+            <h2>Compress PDF</h2>
+            <p>Shrink scanned and photo-heavy PDFs by downsampling images.</p>
+          </div>
         </div>
       </section>
 
@@ -141,6 +149,28 @@
         <div id="img-thumbnails" class="thumbnails-grid">
           <!-- Image thumbnails injected here -->
         </div>
+      </section>
+
+      <!-- Compress PDF View -->
+      <section id="view-compress-pdf" class="view hidden">
+        <div class="toolbar">
+          <h2>Compress PDF</h2>
+          <div class="toolbar-actions" style="display:flex; gap:1rem; align-items:center;">
+            <select id="compress-preset" title="Image resolution and JPEG quality">
+              <option value="small">Small — 120 dpi</option>
+              <option value="standard" selected>Standard — 150 dpi</option>
+              <option value="high">High — 200 dpi</option>
+            </select>
+            <button id="compress-download-btn" class="btn primary" disabled>Compress & Download</button>
+          </div>
+        </div>
+
+        <div id="compress-dropzone" class="dropzone compact">
+          <input type="file" id="compress-file-input" accept="application/pdf" hidden />
+          <p>Drag & Drop a PDF here or <span class="text-accent">click to browse</span></p>
+        </div>
+
+        <div id="compress-info" class="sortable-list"></div>
       </section>
 
       <!-- About View -->

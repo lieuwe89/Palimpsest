@@ -7,6 +7,7 @@ Palimpsest is a modern, client-side web application for quick, secure, and intui
 - **Visual Splitting**: Use interactive Bauhaus-style markers to define split points between pages and download chunks instantly.
 - **Merge PDFs**: Combine multiple files seamlessly with a high-contrast sorting interface.
 - **Images to PDF**: Batch convert PNG and JPG files into a single, cohesive PDF document with automatic aspect-ratio preservation.
+- **Compress PDF**: Shrink scanned and photo-heavy PDFs by downsampling and recompressing embedded JPEG images (Small / Standard / High presets).
 - **Privacy First**: 100% browser-based. No PDF files ever leave your device or are uploaded to any server.
 
 ## Tech Stack

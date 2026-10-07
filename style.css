@@ -564,15 +564,16 @@ body {
 }
 
 /* Custom Input for Filename */
-#merge-filename, #img-filename {
+#merge-filename, #img-filename, #compress-preset {
   border: var(--border-width) solid var(--border-color);
   padding: 0.75rem;
   font-family: var(--font-family);
   font-weight: 600;
   width: 250px;
+  background: white;
 }
 
-#merge-filename:focus, #img-filename:focus {
+#merge-filename:focus, #img-filename:focus, #compress-preset:focus {
   outline: none;
   background: var(--bauhaus-yellow);
 }

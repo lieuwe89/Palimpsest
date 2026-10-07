@@ -1,6 +1,7 @@
 import { initEditPdf } from './src/workflows/editPdf.js';
 import { initMergePdfs } from './src/workflows/mergePdfs.js';
 import { initImagesToPdf } from './src/workflows/imagesToPdf.js';
+import { initCompressPdf } from './src/workflows/compressPdf.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const views = {
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'edit-pdf': document.getElementById('view-edit-pdf'),
     'merge-pdfs': document.getElementById('view-merge-pdfs'),
     'images-to-pdf': document.getElementById('view-images-to-pdf'),
+    'compress-pdf': document.getElementById('view-compress-pdf'),
     'about': document.getElementById('view-about')
   };
 
@@ -58,4 +60,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initEditPdf();
   initMergePdfs();
   initImagesToPdf();
+  initCompressPdf();
 });
