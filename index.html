@@ -133,6 +133,8 @@
           <h2>Merge PDFs</h2>
           <div class="toolbar-actions" style="display:flex; gap:1rem; align-items:center;">
             <input type="text" id="merge-filename" placeholder="Output filename" />
+            <label class="toggle" title="Add a searchable text layer (Dutch) to pages without text"><input type="checkbox" id="merge-ocr" /> OCR</label>
+            <label class="toggle" title="Downsample images to 150 dpi (Standard preset)"><input type="checkbox" id="merge-compress" /> Compress</label>
             <button id="merge-download-btn" class="btn primary" disabled>Merge & Download</button>
           </div>
         </div>

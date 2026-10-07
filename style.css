@@ -436,6 +436,26 @@ body {
   cursor: pointer;
 }
 
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: var(--border-width) solid var(--border-color);
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: white;
+}
+
+.toggle:has(input:checked) {
+  background: var(--bauhaus-yellow);
+}
+
+.toggle input {
+  accent-color: var(--bauhaus-dark);
+}
+
 .meta-row {
   padding: 1rem 1.5rem;
 }

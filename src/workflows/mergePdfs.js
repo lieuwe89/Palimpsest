@@ -1,6 +1,8 @@
 import Sortable from 'sortablejs';
 import { PDFDocument } from 'pdf-lib';
 import { showNotification } from '../utils/notifications.js';
+import { ocrPdf } from './ocrPdf.js';
+import { compressPdf, PRESETS } from './compressPdf.js';
 
 export function initMergePdfs() {
   const dropzone = document.getElementById('merge-dropzone');
@@ -103,7 +105,19 @@ export function initMergePdfs() {
         const copiedPages = await mergedPdf.copyPages(doc, doc.getPageIndices());
         copiedPages.forEach((page) => mergedPdf.addPage(page));
       }
-      const pdfBytes = await mergedPdf.save();
+      let pdfBytes = await mergedPdf.save();
+
+      // OCR before compressing, so recognition sees the full-resolution images.
+      if (document.getElementById('merge-ocr').checked) {
+        downloadBtn.textContent = 'Loading OCR…';
+        // ponytail: fixed to Dutch; add a language picker if English documents come up.
+        const { bytes } = await ocrPdf(pdfBytes, 'nld', (n, total) => { downloadBtn.textContent = `OCR ${n}/${total}`; });
+        if (bytes) pdfBytes = bytes;
+      }
+      if (document.getElementById('merge-compress').checked) {
+        const compressed = await compressPdf(pdfBytes, PRESETS.standard, (n, total) => { downloadBtn.textContent = `Image ${n}/${total}`; });
+        if (compressed.length < pdfBytes.length) pdfBytes = compressed;
+      }
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
