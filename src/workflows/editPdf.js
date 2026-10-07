@@ -73,7 +73,7 @@ export function initEditPdf() {
       dropzone.classList.remove('hidden');
       workspace.classList.add('hidden');
       if (err.message && err.message.includes('encrypted')) {
-        showNotification('This PDF is encrypted. Please unlock it (e.g., "Save to PDF" in your browser) before editing.', 'error');
+        showNotification('This PDF is encrypted. Use Unlock PDF first, then edit it.', 'error');
       } else {
         showNotification(`Error: ${err.message || err}`, 'error');
       }

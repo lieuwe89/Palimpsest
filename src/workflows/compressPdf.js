@@ -1,6 +1,6 @@
 import { PDFDocument, PDFName, PDFArray, PDFDict, PDFRawStream, PDFRef, PDFNumber } from 'pdf-lib';
 import { showNotification } from '../utils/notifications.js';
-import { bindPdfDropzone, downloadBytes } from '../utils/dropzone.js';
+import { bindPdfDropzone, downloadBytes, renderFileItem } from '../utils/dropzone.js';
 
 export const PRESETS = {
   small: { dpi: 120, quality: 0.65 },
@@ -108,26 +108,11 @@ export function initCompressPdf() {
 
   let file = null;
 
-  const renderInfo = (meta) => {
-    if (!file) {
-      info.innerHTML = '';
-      return;
-    }
-    info.innerHTML = `
-      <div class="list-item">
-        <div class="file-info">
-          <div class="file-name" title="${file.name}">${file.name}</div>
-          <div class="file-meta">${meta}</div>
-        </div>
-        <button class="remove-btn" title="Remove file">&times;</button>
-      </div>
-    `;
-    info.querySelector('.remove-btn').addEventListener('click', () => {
-      file = null;
-      renderInfo();
-      downloadBtn.disabled = true;
-    });
-  };
+  const renderInfo = (meta) => renderFileItem(info, file, meta, () => {
+    file = null;
+    renderInfo();
+    downloadBtn.disabled = true;
+  });
 
   bindPdfDropzone(dropzone, fileInput, (pdf) => {
     file = pdf;
@@ -160,7 +145,7 @@ export function initCompressPdf() {
       showNotification('PDF compressed successfully!', 'success');
     } catch (err) {
       if (err.message && err.message.includes('encrypted')) {
-        showNotification(`Cannot compress ${original.name}: PDF is encrypted. Please unlock it first.`, 'error');
+        showNotification(`Cannot compress ${original.name}: PDF is encrypted. Use Unlock PDF first.`, 'error');
       } else {
         showNotification(`Error compressing PDF: ${err.message || err}`, 'error');
       }

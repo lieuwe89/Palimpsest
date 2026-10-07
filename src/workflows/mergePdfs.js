@@ -38,7 +38,7 @@ export function initMergePdfs() {
         renderList();
       } catch (err) {
         if (err.message && err.message.includes('encrypted')) {
-          showNotification(`Cannot load ${file.name}: PDF is encrypted. Please unlock it first.`, 'error');
+          showNotification(`Cannot load ${file.name}: PDF is encrypted. Use Unlock PDF first.`, 'error');
         } else {
           showNotification(`Error loading ${file.name}: ${err.message || err}`, 'error');
         }
@@ -131,7 +131,7 @@ export function initMergePdfs() {
       showNotification('PDF merged successfully!', 'success');
     } catch (err) {
       if (err.message && err.message.includes('encrypted')) {
-        showNotification('Error: One of the PDFs is encrypted and cannot be merged.', 'error');
+        showNotification('Error: One of the PDFs is encrypted. Use Unlock PDF on it first.', 'error');
       } else {
         showNotification(`Error merging PDFs: ${err.message || err}`, 'error');
       }

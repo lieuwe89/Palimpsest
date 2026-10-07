@@ -6,7 +6,7 @@ import {
 } from 'pdf-lib';
 import { pdfjsLib } from '../utils/pdfWorker.js';
 import { showNotification } from '../utils/notifications.js';
-import { bindPdfDropzone, downloadBytes } from '../utils/dropzone.js';
+import { bindPdfDropzone, downloadBytes, renderFileItem } from '../utils/dropzone.js';
 
 const RENDER_DPI = 300;
 // Self-hosted (see scripts/copy-tesseract.mjs). Absolute, because the worker resolves these from a blob: URL.
@@ -124,26 +124,11 @@ export function initOcrPdf() {
 
   let file = null;
 
-  const renderInfo = (meta) => {
-    if (!file) {
-      info.innerHTML = '';
-      return;
-    }
-    info.innerHTML = `
-      <div class="list-item">
-        <div class="file-info">
-          <div class="file-name" title="${file.name}">${file.name}</div>
-          <div class="file-meta">${meta}</div>
-        </div>
-        <button class="remove-btn" title="Remove file">&times;</button>
-      </div>
-    `;
-    info.querySelector('.remove-btn').addEventListener('click', () => {
-      file = null;
-      renderInfo();
-      downloadBtn.disabled = true;
-    });
-  };
+  const renderInfo = (meta) => renderFileItem(info, file, meta, () => {
+    file = null;
+    renderInfo();
+    downloadBtn.disabled = true;
+  });
 
   bindPdfDropzone(dropzone, fileInput, (pdf) => {
     file = pdf;
@@ -181,7 +166,7 @@ export function initOcrPdf() {
       showNotification('Text recognition complete!', 'success');
     } catch (err) {
       if (err.message && err.message.includes('encrypted')) {
-        showNotification(`Cannot process ${original.name}: PDF is encrypted. Please unlock it first.`, 'error');
+        showNotification(`Cannot process ${original.name}: PDF is encrypted. Use Unlock PDF first.`, 'error');
       } else {
         showNotification(`Error during text recognition: ${err.message || err}`, 'error');
       }

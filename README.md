@@ -11,6 +11,8 @@ Palimpsest is a modern, client-side web application for quick, secure, and intui
 - **OCR PDF**: Add an invisible, searchable text layer to scanned PDFs with Tesseract.js (Dutch / English). Runs locally; the OCR engine and language models are self-hosted (`npm run dev`/`build` copy them into `public/tesseract/`).
 - **Metadata**: View, edit or wipe the document info (author, software, dates) and embedded XMP metadata.
 - **Accessibility**: Check a PDF against screen-reader basics (text layer, tags, title, language, bookmarks, alt text, tab order, form field descriptions) and fix title, language and tab order. Merge can also run OCR and compression in one go.
+- **Unlock PDF**: Remove encryption and permission restrictions with qpdf (WebAssembly, loaded on demand). Password-protected files open when you supply the password.
+- **Page Numbers**: Stamp numbers in any corner or centre, as `1`, `1 / N` or `Page 1 of N`, with a custom start and an optional unnumbered cover; rotated pages are handled.
 - **Privacy First**: 100% browser-based. No PDF files ever leave your device or are uploaded to any server.
 
 ## Tech Stack

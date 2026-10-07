@@ -96,6 +96,22 @@
             <h2>Accessibility</h2>
             <p>Check a PDF against the basics screen readers need, and fix title and language.</p>
           </div>
+
+          <div class="action-card" data-target="unlock-pdf">
+            <div class="card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><rect x="4" y="11" width="16" height="10"></rect><path d="M8 11V7a4 4 0 0 1 7.5-2"></path></svg>
+            </div>
+            <h2>Unlock PDF</h2>
+            <p>Remove encryption and restrictions from PDFs you are allowed to open.</p>
+          </div>
+
+          <div class="action-card" data-target="page-numbers">
+            <div class="card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="9" y1="4" x2="7" y2="20"></line><line x1="17" y1="4" x2="15" y2="20"></line><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line></svg>
+            </div>
+            <h2>Page Numbers</h2>
+            <p>Stamp page numbers on every page, in the corner and format you choose.</p>
+          </div>
         </div>
       </section>
 
@@ -262,6 +278,56 @@
         </div>
 
         <div id="a11y-report" class="sortable-list"></div>
+      </section>
+
+      <!-- Unlock PDF View -->
+      <section id="view-unlock-pdf" class="view hidden">
+        <div class="toolbar">
+          <h2>Unlock PDF</h2>
+          <div class="toolbar-actions" style="display:flex; gap:1rem; align-items:center;">
+            <input type="password" id="unlock-password" placeholder="Password (if needed)" autocomplete="off" />
+            <button id="unlock-download-btn" class="btn primary" disabled>Unlock & Download</button>
+          </div>
+        </div>
+
+        <div id="unlock-dropzone" class="dropzone compact">
+          <input type="file" id="unlock-file-input" accept="application/pdf" hidden />
+          <p>Drag & Drop an encrypted PDF here or <span class="text-accent">click to browse</span></p>
+        </div>
+
+        <div id="unlock-info" class="sortable-list"></div>
+      </section>
+
+      <!-- Page Numbers View -->
+      <section id="view-page-numbers" class="view hidden">
+        <div class="toolbar">
+          <h2>Page Numbers</h2>
+          <div class="toolbar-actions" style="display:flex; gap:1rem; align-items:center;">
+            <select id="pagenum-position" title="Position">
+              <option value="bottom-center" selected>Bottom centre</option>
+              <option value="bottom-right">Bottom right</option>
+              <option value="bottom-left">Bottom left</option>
+              <option value="top-center">Top centre</option>
+              <option value="top-right">Top right</option>
+              <option value="top-left">Top left</option>
+            </select>
+            <select id="pagenum-format" title="Format">
+              <option value="plain" selected>1</option>
+              <option value="ofTotal">1 / 12</option>
+              <option value="page">Page 1 of 12</option>
+            </select>
+            <label class="toggle" title="Number on the first numbered page">Start at <input type="number" id="pagenum-start" min="1" value="1" /></label>
+            <label class="toggle" title="Leave the first page (e.g. a cover) unnumbered"><input type="checkbox" id="pagenum-skip-first" /> Skip cover</label>
+            <button id="pagenum-download-btn" class="btn primary" disabled>Number & Download</button>
+          </div>
+        </div>
+
+        <div id="pagenum-dropzone" class="dropzone compact">
+          <input type="file" id="pagenum-file-input" accept="application/pdf" hidden />
+          <p>Drag & Drop a PDF here or <span class="text-accent">click to browse</span></p>
+        </div>
+
+        <div id="pagenum-info" class="sortable-list"></div>
       </section>
 
       <!-- About View -->

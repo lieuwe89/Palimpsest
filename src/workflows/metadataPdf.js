@@ -95,7 +95,7 @@ export function initMetadataPdf() {
       clearBtn.disabled = saveBtn.disabled = false;
     } catch (err) {
       if (err.message && err.message.includes('encrypted')) {
-        showNotification(`Cannot load ${pdf.name}: PDF is encrypted. Please unlock it first.`, 'error');
+        showNotification(`Cannot load ${pdf.name}: PDF is encrypted. Use Unlock PDF first.`, 'error');
       } else {
         showNotification(`Error loading ${pdf.name}: ${err.message || err}`, 'error');
       }

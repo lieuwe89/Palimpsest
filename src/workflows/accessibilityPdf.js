@@ -149,7 +149,7 @@ export function initAccessibilityPdf() {
       fixBtn.disabled = false;
     } catch (err) {
       if (err.message && err.message.includes('encrypted')) {
-        showNotification(`Cannot check ${pdf.name}: PDF is encrypted. Please unlock it first.`, 'error');
+        showNotification(`Cannot check ${pdf.name}: PDF is encrypted. Use Unlock PDF first.`, 'error');
       } else {
         showNotification(`Error checking ${pdf.name}: ${err.message || err}`, 'error');
       }

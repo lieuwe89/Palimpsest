@@ -643,7 +643,7 @@ input.meta-value:focus {
 }
 
 /* Custom Input for Filename */
-#merge-filename, #img-filename, #compress-preset, #ocr-lang, #a11y-title, #a11y-lang {
+#merge-filename, #img-filename, #compress-preset, #ocr-lang, #a11y-title, #a11y-lang, #unlock-password, #pagenum-position, #pagenum-format, #pagenum-start {
   border: var(--border-width) solid var(--border-color);
   padding: 0.75rem;
   font-family: var(--font-family);
@@ -652,7 +652,7 @@ input.meta-value:focus {
   background: white;
 }
 
-#merge-filename:focus, #img-filename:focus, #compress-preset:focus, #ocr-lang:focus, #a11y-title:focus, #a11y-lang:focus {
+#merge-filename:focus, #img-filename:focus, #compress-preset:focus, #ocr-lang:focus, #a11y-title:focus, #a11y-lang:focus, #unlock-password:focus, #pagenum-position:focus, #pagenum-format:focus, #pagenum-start:focus {
   outline: none;
   background: var(--bauhaus-yellow);
 }
@@ -744,4 +744,9 @@ input.meta-value:focus {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 0.9rem;
+}
+
+#pagenum-start {
+  width: 70px;
+  padding: 0.25rem 0.5rem;
 }

@@ -5,6 +5,8 @@ import { initCompressPdf } from './src/workflows/compressPdf.js';
 import { initOcrPdf } from './src/workflows/ocrPdf.js';
 import { initMetadataPdf } from './src/workflows/metadataPdf.js';
 import { initAccessibilityPdf } from './src/workflows/accessibilityPdf.js';
+import { initUnlockPdf } from './src/workflows/unlockPdf.js';
+import { initPageNumbers } from './src/workflows/pageNumbers.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const views = {
@@ -16,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'ocr-pdf': document.getElementById('view-ocr-pdf'),
     'metadata-pdf': document.getElementById('view-metadata-pdf'),
     'accessibility-pdf': document.getElementById('view-accessibility-pdf'),
+    'unlock-pdf': document.getElementById('view-unlock-pdf'),
+    'page-numbers': document.getElementById('view-page-numbers'),
     'about': document.getElementById('view-about')
   };
 
@@ -70,4 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initOcrPdf();
   initMetadataPdf();
   initAccessibilityPdf();
+  initUnlockPdf();
+  initPageNumbers();
 });
